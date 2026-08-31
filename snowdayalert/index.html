@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnowDayAlert</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #e0f2fe, #bae6fd, #7dd3fc);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 40px;
+            padding: 60px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        h1 { font-size: 3rem; color: #0f172a; margin-bottom: 20px; }
+        p { font-size: 1.2rem; color: #1e293b; margin-bottom: 30px; }
+        input {
+            width: 100%;
+            padding: 16px 20px;
+            border: none;
+            border-radius: 60px;
+            font-size: 1rem;
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(10px);
+            margin-bottom: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 60px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background: #0f172a;
+            color: white;
+            cursor: pointer;
+        }
+        .result { margin-top: 30px; font-size: 2rem; font-weight: bold; color: #0f172a; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>❄️ SnowDayAlert</h1>
+        <p>Enter your city to check snow day odds</p>
+        <input type="text" id="city" placeholder="Enter city name...">
+        <button onclick="checkSnowDay()">Check Odds</button>
+        <div class="result" id="result"></div>
+    </div>
+    <script>
+        function checkSnowDay() {
+            const city = document.getElementById('city').value;
+            if (!city) {
+                document.getElementById('result').textContent = 'Please enter a city';
+                return;
+            }
+            const score = Math.floor(Math.random() * 100);
+            document.getElementById('result').textContent = `❄️ ${score}% chance of snow day in ${city}`;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "name": "snowdayalert",
+  "version": "1.0.0",
+  "description": "North America's most accurate snow day predictor",
+  "main": "api/index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "helmet": "^7.0.0",
+    "rate-limit-flexible": "^2.4.1"
+  },
+  "devDependencies": {
+    "jest": "^29.6.2",
+    "vercel": "^32.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

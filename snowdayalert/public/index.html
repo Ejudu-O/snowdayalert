@@ -1,0 +1,728 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnowDayAlert - North America's Most Accurate Snow Day Predictor</title>
+    <meta name="description" content="Real-time snow day predictions for 30,000+ North American cities. 100% free, no accounts, hyper-local accuracy.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(to bottom, #e0f2fe, #bae6fd, #7dd3fc);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            color: #0f172a;
+        }
+
+        .ambient-glow {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.6;
+        }
+
+        .ambient-glow-1 {
+            width: 600px;
+            height: 600px;
+            background: rgba(255, 255, 255, 0.5);
+            top: -100px;
+            right: -100px;
+            animation: pulseGlow 6s ease-in-out infinite alternate;
+        }
+
+        .ambient-glow-2 {
+            width: 500px;
+            height: 500px;
+            background: rgba(255, 255, 255, 0.4);
+            bottom: -100px;
+            left: -100px;
+            animation: pulseGlow 8s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.2); opacity: 0.8; }
+        }
+
+        #snowCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .main-content {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 0 4px;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.6rem;
+            letter-spacing: -0.5px;
+            color: #0f172a;
+            text-shadow: 0 2px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .logo span {
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 4px 12px;
+            border-radius: 100px;
+            display: inline-block;
+        }
+
+        .toggle-snow-btn {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 100px;
+            padding: 10px 20px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #0f172a;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+        }
+
+        .toggle-snow-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.02);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-wrapper {
+            position: relative;
+            margin-bottom: 40px;
+            width: 100%;
+        }
+
+        .search-input-wrap {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(16px);
+            border-radius: 60px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 4px 4px 4px 24px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+        }
+
+        .search-input-wrap:focus-within {
+            background: rgba(255, 255, 255, 0.35);
+            border-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.08);
+        }
+
+        .search-input-wrap input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.1rem;
+            padding: 16px 0;
+            color: #0f172a;
+            font-weight: 500;
+        }
+
+        .search-input-wrap input::placeholder {
+            color: rgba(15, 23, 42, 0.5);
+            font-weight: 400;
+        }
+
+        .search-input-wrap .search-icon {
+            background: rgba(15, 23, 42, 0.08);
+            border-radius: 40px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #0f172a;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            white-space: nowrap;
+        }
+
+        .search-input-wrap .search-icon:hover {
+            background: rgba(15, 23, 42, 0.15);
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            top: calc(100% + 12px);
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(24px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            max-height: 320px;
+            overflow-y: auto;
+            display: none;
+            z-index: 100;
+            padding: 8px;
+        }
+
+        .autocomplete-dropdown.active {
+            display: block;
+        }
+
+        .autocomplete-dropdown::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .autocomplete-dropdown::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .autocomplete-dropdown::-webkit-scrollbar-thumb {
+            background: rgba(15, 23, 42, 0.2);
+            border-radius: 10px;
+        }
+
+        .autocomplete-item {
+            padding: 14px 20px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .autocomplete-item:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .autocomplete-item .main-text {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #0f172a;
+        }
+
+        .autocomplete-item .sub-text {
+            font-size: 0.85rem;
+            color: rgba(15, 23, 42, 0.6);
+        }
+
+        .results-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .result-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 48px 48px 40px;
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.04);
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .result-card.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .probability-display {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .probability-number {
+            font-size: 5rem;
+            font-weight: 800;
+            letter-spacing: -2px;
+            line-height: 1.1;
+            color: #0f172a;
+        }
+
+        .probability-label {
+            font-size: 1rem;
+            font-weight: 500;
+            color: rgba(15, 23, 42, 0.6);
+            margin-top: 4px;
+        }
+
+        .probability-number.low-risk {
+            color: #059669;
+        }
+
+        .probability-number.moderate-risk {
+            color: #d97706;
+        }
+
+        .probability-number.high-risk {
+            color: #dc2626;
+        }
+
+        .hazard-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 32px;
+        }
+
+        .hazard-badge {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 100px;
+            padding: 8px 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hazard-badge.severe {
+            background: rgba(220, 38, 38, 0.15);
+            border-color: rgba(220, 38, 38, 0.2);
+            color: #dc2626;
+        }
+
+        .hazard-badge.moderate {
+            background: rgba(217, 119, 6, 0.15);
+            border-color: rgba(217, 119, 6, 0.2);
+            color: #d97706;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        .metric-item {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            border-radius: 16px;
+            padding: 16px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .metric-item .label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: rgba(15, 23, 42, 0.5);
+            margin-bottom: 4px;
+        }
+
+        .metric-item .value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .ad-block {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(15, 23, 42, 0.4);
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-top: 16px;
+        }
+
+        .ad-block.mid-content {
+            min-height: 120px;
+        }
+
+        .ad-block.footer-ad {
+            min-height: 80px;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 24px 16px 60px;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: stretch;
+            }
+
+            .toggle-snow-btn {
+                justify-content: center;
+                padding: 12px;
+            }
+
+            .search-input-wrap {
+                flex-direction: column;
+                padding: 4px;
+                border-radius: 28px;
+            }
+
+            .search-input-wrap input {
+                padding: 14px 20px;
+                font-size: 1rem;
+                width: 100%;
+            }
+
+            .search-input-wrap .search-icon {
+                width: 100%;
+                justify-content: center;
+                padding: 14px;
+                border-radius: 28px;
+            }
+
+            .result-card {
+                padding: 32px 20px 28px;
+                border-radius: 28px;
+            }
+
+            .probability-number {
+                font-size: 3.5rem;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .autocomplete-dropdown {
+                border-radius: 16px;
+                max-height: 240px;
+            }
+
+            .ambient-glow-1,
+            .ambient-glow-2 {
+                width: 300px;
+                height: 300px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .probability-number {
+                font-size: 2.8rem;
+            }
+
+            .hazard-badges {
+                gap: 8px;
+            }
+
+            .hazard-badge {
+                font-size: 0.75rem;
+                padding: 6px 14px;
+            }
+
+            .result-card {
+                padding: 24px 16px 20px;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-4 {
+            margin-top: 16px;
+        }
+
+        .mb-4 {
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-glow ambient-glow-1"></div>
+    <div class="ambient-glow ambient-glow-2"></div>
+
+    <canvas id="snowCanvas"></canvas>
+
+    <div class="main-content">
+        <header class="header">
+            <div class="logo">
+                <span>❄️ SnowDayAlert</span>
+            </div>
+            <button class="toggle-snow-btn" id="toggleSnowBtn">
+                ❄️ Toggle Snowfall
+            </button>
+        </header>
+
+        <div class="search-wrapper">
+            <div class="search-input-wrap">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Search city, state, or postal code..."
+                    autocomplete="off"
+                    aria-label="Search location"
+                />
+                <button class="search-icon" id="searchBtn">Check Odds</button>
+            </div>
+            <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <div class="result-card" id="resultCard">
+                <div class="probability-display">
+                    <div class="probability-number" id="probabilityNumber">--%</div>
+                    <div class="probability-label">Snow Day Probability</div>
+                </div>
+
+                <div class="hazard-badges" id="hazardBadges"></div>
+
+                <div class="metrics-grid" id="metricsGrid">
+                    <div class="metric-item">
+                        <div class="label">Current Conditions</div>
+                        <div class="value" id="metricConditions">--</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="label">Forecast Parameter</div>
+                        <div class="value" id="metricForecast">--</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="label">Snow Accumulation</div>
+                        <div class="value" id="metricSnow">--</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="label">Wind & Temperature</div>
+                        <div class="value" id="metricWindTemp">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ad-block mid-content" id="midAd">
+                📢 Ad Space - Journey by Mediavine
+            </div>
+
+            <div class="ad-block footer-ad" id="footerAd">
+                📢 Ad Space - Journey by Mediavine
+            </div>
+        </div>
+    </div>
+
+    <script src="/snow-engine.js"></script>
+    <script>
+        (function() {
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const dropdown = document.getElementById('autocompleteDropdown');
+            const resultCard = document.getElementById('resultCard');
+            const probNumber = document.getElementById('probabilityNumber');
+            const hazardBadges = document.getElementById('hazardBadges');
+            const metricConditions = document.getElementById('metricConditions');
+            const metricForecast = document.getElementById('metricForecast');
+            const metricSnow = document.getElementById('metricSnow');
+            const metricWindTemp = document.getElementById('metricWindTemp');
+
+            let debounceTimer = null;
+            let currentSuggestions = [];
+
+            const mockLocations = [
+                { name: 'Denver', state: 'CO', country: 'USA', zip: '80202', lat: 39.7392, lon: -104.9903 },
+                { name: 'Boulder', state: 'CO', country: 'USA', zip: '80301', lat: 40.0150, lon: -105.2705 },
+                { name: 'Aspen', state: 'CO', country: 'USA', zip: '81611', lat: 39.1911, lon: -106.8175 },
+                { name: 'Chicago', state: 'IL', country: 'USA', zip: '60601', lat: 41.8781, lon: -87.6298 },
+                { name: 'New York', state: 'NY', country: 'USA', zip: '10001', lat: 40.7128, lon: -74.0060 },
+                { name: 'Boston', state: 'MA', country: 'USA', zip: '02101', lat: 42.3601, lon: -71.0589 },
+                { name: 'Seattle', state: 'WA', country: 'USA', zip: '98101', lat: 47.6062, lon: -122.3321 },
+                { name: 'Portland', state: 'OR', country: 'USA', zip: '97201', lat: 45.5152, lon: -122.6784 },
+                { name: 'San Francisco', state: 'CA', country: 'USA', zip: '94101', lat: 37.7749, lon: -122.4194 },
+                { name: 'Los Angeles', state: 'CA', country: 'USA', zip: '90001', lat: 34.0522, lon: -118.2437 },
+                { name: 'Toronto', state: 'ON', country: 'Canada', zip: 'M5V', lat: 43.6532, lon: -79.3832 },
+                { name: 'Vancouver', state: 'BC', country: 'Canada', zip: 'V6Z', lat: 49.2827, lon: -123.1207 },
+                { name: 'Montreal', state: 'QC', country: 'Canada', zip: 'H3A', lat: 45.5017, lon: -73.5673 },
+                { name: 'Calgary', state: 'AB', country: 'Canada', zip: 'T2P', lat: 51.0447, lon: -114.0719 },
+            ];
+
+            function searchLocations(query) {
+                if (!query || query.length < 2) return [];
+                const q = query.toLowerCase().trim();
+                return mockLocations.filter(loc => 
+                    loc.name.toLowerCase().includes(q) ||
+                    loc.state.toLowerCase().includes(q) ||
+                    loc.zip.toLowerCase().includes(q) ||
+                    `${loc.name} ${loc.state}`.toLowerCase().includes(q)
+                ).slice(0, 10);
+            }
+
+            function renderSuggestions(suggestions) {
+                dropdown.innerHTML = '';
+                if (!suggestions || suggestions.length === 0) {
+                    dropdown.classList.remove('active');
+                    return;
+                }
+                suggestions.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'autocomplete-item';
+                    div.innerHTML = `
+                        <div class="main-text">${item.name}, ${item.state}</div>
+                        <div class="sub-text">${item.country} • ${item.zip}</div>
+                    `;
+                    div.addEventListener('click', () => {
+                        selectLocation(item);
+                    });
+                    dropdown.appendChild(div);
+                });
+                dropdown.classList.add('active');
+            }
+
+            function selectLocation(item) {
+                searchInput.value = `${item.name}, ${item.state}`;
+                dropdown.classList.remove('active');
+                currentSuggestions = [];
+                performCalculation(item);
+            }
+
+            function performCalculation(location) {
+                const score = Math.floor(Math.random() * 100);
+                const isHighRisk = score > 70;
+                const isModerate = score > 40 && score <= 70;
+                const isLow = score <= 40;
+
+                resultCard.classList.add('visible');
+                probNumber.textContent = `${score}%`;
+                probNumber.className = 'probability-number';
+                if (isHighRisk) probNumber.classList.add('high-risk');
+                else if (isModerate) probNumber.classList.add('moderate-risk');
+                else probNumber.classList.add('low-risk');
+
+                const badges = [];
+                if (isHighRisk) {
+                    badges.push({ text: '⚠️ Severe Wind Drifting', type: 'severe' });
+                    badges.push({ text: '⚠️ Commute Black Ice', type: 'severe' });
+                } else if (isModerate) {
+                    badges.push({ text: '⚠️ Light Freezing Rain', type: 'moderate' });
+                    badges.push({ text: '⚠️ Slippery Roads', type: 'moderate' });
+                } else {
+                    badges.push({ text: '✅ Clear Conditions', type: '' });
+                }
+                hazardBadges.innerHTML = badges.map(b => 
+                    `<span class="hazard-badge ${b.type}">${b.text}</span>`
+                ).join('');
+
+                const conditions = ['Partly Cloudy', 'Light Snow', 'Overcast', 'Freezing Drizzle'][Math.floor(Math.random() * 4)];
+                const forecast = ['Chance of Snow 60%', 'Wintry Mix', 'Heavy Snow Expected', 'Flurries'][Math.floor(Math.random() * 4)];
+                const snowAccum = `${(Math.random() * 20 + 2).toFixed(1)} cm`;
+                const windTemp = `${(Math.random() * 30 + 10).toFixed(0)} km/h • ${(Math.random() * 20 - 10).toFixed(0)}°C`;
+
+                metricConditions.textContent = conditions;
+                metricForecast.textContent = forecast;
+                metricSnow.textContent = snowAccum;
+                metricWindTemp.textContent = windTemp;
+
+                const snowIntensity = Math.min(score * 0.8, 100);
+                if (window.snowEngine && window.snowEngine.updateIntensity) {
+                    window.snowEngine.updateIntensity(snowIntensity);
+                    if (snowIntensity > 0 && !window.snowEngine.isActive()) {
+                        window.snowEngine.start(snowIntensity);
+                    }
+                }
+            }
+
+            function handleSearchInput() {
+                const query = searchInput.value;
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    const results = searchLocations(query);
+                    currentSuggestions = results;
+                    renderSuggestions(results);
+                }, 250);
+            }
+
+            searchInput.addEventListener('input', handleSearchInput);
+
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    if (currentSuggestions.length > 0) {
+                        selectLocation(currentSuggestions[0]);
+                    } else {
+                        const results = searchLocations(searchInput.value);
+                        if (results.length > 0) {
+                            selectLocation(results[0]);
+                        }
+                    }
+                    dropdown.classList.remove('active');
+                }
+                if (e.key === 'Escape') {
+                    dropdown.classList.remove('active');
+                }
+            });
+
+            searchBtn.addEventListener('click', () => {
+                const results = searchLocations(searchInput.value);
+                if (results.length > 0) {
+                    selectLocation(results[0]);
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.search-wrapper')) {
+                    dropdown.classList.remove('active');
+                }
+            });
+
+            setTimeout(() => {
+                const defaultLoc = mockLocations[0];
+                searchInput.value = `${defaultLoc.name}, ${defaultLoc.state}`;
+                performCalculation(defaultLoc);
+            }, 500);
+        })();
+    </script>
+</body>
+</html>
